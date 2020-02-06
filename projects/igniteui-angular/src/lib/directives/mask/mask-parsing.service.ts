@@ -8,18 +8,6 @@ export const MASK_FLAGS = ['C', '&', 'a', 'A', '?', 'L', '9', '0', '#'];
 /**
  * @hidden
  */
-export const KEYS = {
-    Ctrl: 17,
-    Z: 90,
-    Y: 89,
-    X: 88,
-    BACKSPACE: 8,
-    DELETE: 46
-};
-
-/**
- * @hidden
- */
 @Injectable({
     providedIn: 'root'
 })
@@ -27,67 +15,6 @@ export class MaskParsingService {
     private _cursor;
     public get cursor() {
         return this._cursor;
-    }
-
-    public parseValueWithoutSelection(value, maskOptions, cursor): string {
-        let inputValue: string = value;
-        const mask: string = maskOptions.format;
-        const literals: Map<number, string> = this.getMaskLiterals(mask);
-        const literalKeys: number[] = Array.from(literals.keys());
-        const nonLiteralIndices: number[] = this.getNonLiteralIndeces(mask, literalKeys);
-
-        if (inputValue.length < mask.length) { // BACKSPACE, DELETE
-            if (inputValue === '' && cursor === -1) {
-                this._cursor = 0;
-                return this.parseValueByMaskOnInit(value, maskOptions);
-            } // workaround for IE 'x' button
-
-            if (nonLiteralIndices.indexOf(cursor + 1) !== -1) {
-                inputValue = this.insertCharAt(inputValue, cursor + 1, maskOptions.promptChar);
-                this._cursor = cursor + 1;
-            } else {
-                inputValue = this.insertCharAt(inputValue, cursor + 1, mask[cursor + 1]);
-                this._cursor = cursor + 1;
-                for (let i = this._cursor; i < 0; i--) {
-                    if (literalKeys.indexOf(this._cursor) !== -1) {
-                        this._cursor--;
-                    } else {
-                        break;
-                    }
-                }
-            }
-        } else {
-            const char = inputValue[cursor];
-            let isCharValid = this.validateCharOnPosition(char, cursor, mask);
-            if (nonLiteralIndices.indexOf(cursor) !== -1) {
-                inputValue = this.replaceCharAt(inputValue, cursor, '');
-                if (isCharValid) {
-                    inputValue = this.replaceCharAt(inputValue, cursor, char);
-                    this._cursor = cursor + 1;
-                } else {
-                    this._cursor = cursor;
-                }
-            } else {
-                inputValue = this.replaceCharAt(inputValue, cursor, '');
-                this._cursor = ++cursor;
-                for (let i = cursor; i < mask.length; i++) {
-                    if (literalKeys.indexOf(this._cursor) !== -1) {
-                        this._cursor = ++cursor;
-                    } else {
-                        isCharValid = this.validateCharOnPosition(char, cursor, mask);
-                        if (isCharValid) {
-                            inputValue = this.replaceCharAt(inputValue, cursor, char);
-                            this._cursor = ++cursor;
-                            break;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return inputValue;
     }
 
     public parseMask(maskOptions): string {
@@ -106,13 +33,13 @@ export class MaskParsingService {
         return outputVal;
     }
 
-    public parseValueByMaskOnInit(inputVal, maskOptions): string {
+    public parseMaskOnInit(inputVal, maskOptions): string {
         let outputVal = '';
         let value = '';
         const mask: string = maskOptions.format;
         const literals: Map<number, string> = this.getMaskLiterals(mask);
         const literalKeys: number[] = Array.from(literals.keys());
-        const nonLiteralIndeces: number[] = this.getNonLiteralIndeces(mask, literalKeys);
+        const nonLiteralIndeces: number[] = this.getNonLiteralIndices(mask, literalKeys);
         const literalValues: string[] = Array.from(literals.values());
 
         if (inputVal != null) {
@@ -172,135 +99,72 @@ export class MaskParsingService {
         return outputVal;
     }
 
-    public parseValueWithSelection(value, maskOptions, cursor, selection, hasDeleteAction): string {
-        let isCharValid: boolean;
-        let inputValue: string = value;
-        const char: string = inputValue[cursor];
+    public parseMaskValue(value, inputText, maskOptions, cursor, clipboardData, selection, hasDeleteAction?): string {
         const mask: string = maskOptions.format;
         const literals: Map<number, string> = this.getMaskLiterals(mask);
         const literalKeys: number[] = Array.from(literals.keys());
-        const nonLiteralIndeces: number[] = this.getNonLiteralIndeces(mask, literalKeys);
+        const nonLiteralIndices: number[] = this.getNonLiteralIndices(mask, literalKeys);
+        const selectionEnd = cursor + selection;
 
-        if (!hasDeleteAction) {
-            this._cursor = cursor < 0 ? ++cursor : cursor;
-            if (nonLiteralIndeces.indexOf(this._cursor) !== -1) {
-                isCharValid = this.validateCharOnPosition(char, this._cursor, mask);
-                inputValue = isCharValid ? this.replaceCharAt(inputValue, this._cursor++, char) :
-                    inputValue = this.replaceCharAt(inputValue, this._cursor++, maskOptions.promptChar);
-                selection--;
-                if (selection > 0) {
-                    for (let i = 0; i < selection; i++) {
-                        cursor++;
-                        inputValue = nonLiteralIndeces.indexOf(cursor) !== -1 ?
-                            this.insertCharAt(inputValue, cursor, maskOptions.promptChar) :
-                            this.insertCharAt(inputValue, cursor, mask[cursor]);
-                    }
+        if (hasDeleteAction) {
+            if (inputText === '') {
+                this._cursor = 0;
+                return this.parseMaskOnInit(inputText, maskOptions);
+            }
+            let i = 0;
+            this._cursor = ++cursor;
+            do {
+                inputText = this.updateValue(nonLiteralIndices, inputText, cursor++, maskOptions, mask);
+            } while (++i < selection);
+            value = inputText;
+        } else {
+            this._cursor = cursor;
+            for (const char of clipboardData) {
+                if (this._cursor > mask.length) {
+                    return value;
                 }
-            } else {
-                inputValue = this.replaceCharAt(inputValue, this._cursor, mask[this._cursor]);
-                this._cursor++;
-                selection--;
-                let isMarked = false;
-                if (selection > 0) {
-                    cursor = this._cursor;
-                    for (let i = 0; i < selection; i++) {
-                        if (nonLiteralIndeces.indexOf(cursor) !== -1) {
-                            isCharValid = this.validateCharOnPosition(char, cursor, mask);
-                            if (isCharValid && !isMarked) {
-                                inputValue = this.insertCharAt(inputValue, cursor, char);
-                                cursor++;
-                                this._cursor++;
-                                isMarked = true;
-                            } else {
-                                inputValue = this.insertCharAt(inputValue, cursor, maskOptions.promptChar);
-                                cursor++;
-                            }
+
+                if (nonLiteralIndices.indexOf(this._cursor) !== -1) {
+                    const isCharValid = this.validateCharOnPosition(char, this._cursor, mask);
+                    if (isCharValid) {
+                        value = this.replaceCharAt(value, this._cursor++, char);
+                    }
+                } else {
+                    for (let i = cursor; i < mask.length; i++) {
+                        if (literalKeys.indexOf(this._cursor) !== -1) {
+                            this._cursor++;
                         } else {
-                            inputValue = this.insertCharAt(inputValue, cursor, mask[cursor]);
-                            if (cursor === this._cursor) {
-                                this._cursor++;
+                            const isCharValid = this.validateCharOnPosition(char, this._cursor, mask);
+                            if (isCharValid) {
+                                value = this.replaceCharAt(value, this._cursor++, char);
                             }
-                            cursor++;
+                            break;
                         }
                     }
                 }
-            }
-        } else {
-            if (inputValue === '' && cursor === -1) {
-                this._cursor = 0;
-                return this.parseValueByMaskOnInit(value, maskOptions);
-            } // workaround for IE 'x' button
 
-            if (this._cursor < 0) {
-                this._cursor++;
-                cursor++;
-            }
-            cursor++;
-            this._cursor = cursor;
-            for (let i = 0; i < selection; i++) {
-                if (nonLiteralIndeces.indexOf(cursor) !== -1) {
-                    inputValue = this.insertCharAt(inputValue, cursor, maskOptions.promptChar);
-                    cursor++;
-                } else {
-                    inputValue = this.insertCharAt(inputValue, cursor, mask[cursor]);
-                    cursor++;
-                }
-            }
-        }
-
-        return inputValue;
-    }
-
-    public parseValueOnPaste(value, maskOptions, cursor, clipboardData, selection): string {
-        let inputValue: string = value;
-        const mask: string = maskOptions.format;
-        const literals: Map<number, string> = this.getMaskLiterals(mask);
-        const literalKeys: number[] = Array.from(literals.keys());
-        const nonLiteralIndices: number[] = this.getNonLiteralIndeces(mask, literalKeys);
-
-        const selectionEnd = cursor + selection;
-
-        this._cursor = cursor;
-        for (const char of clipboardData) {
-            if (this._cursor > mask.length) {
-                return inputValue;
+                selection--;
             }
 
-            if (nonLiteralIndices.indexOf(this._cursor) !== -1) {
-                const isCharValid = this.validateCharOnPosition(char, this._cursor, mask);
-                if (isCharValid) {
-                    inputValue = this.replaceCharAt(inputValue, this._cursor++, char);
-                }
-            } else {
-                for (let i = cursor; i < mask.length; i++) {
+            if (selection > 0) {
+                for (let i = this._cursor; i < selectionEnd; i++) {
                     if (literalKeys.indexOf(this._cursor) !== -1) {
                         this._cursor++;
                     } else {
-                        const isCharValid = this.validateCharOnPosition(char, this._cursor, mask);
-                        if (isCharValid) {
-                            inputValue = this.replaceCharAt(inputValue, this._cursor++, char);
-                        }
-                        break;
+                        value = this.replaceCharAt(value, this._cursor++, maskOptions.promptChar);
                     }
                 }
             }
-
-            selection--;
         }
 
-        if (selection > 0) {
-            for (let i = this._cursor; i < selectionEnd; i++) {
-                if (literalKeys.indexOf(this._cursor) !== -1) {
-                    this._cursor++;
-                } else {
-                    inputValue = this.replaceCharAt(inputValue, this._cursor++, maskOptions.promptChar);
-                }
-            }
-        }
-
-        return inputValue;
+        return value;
     }
 
+    private updateValue(nonLiteralIndices, value, cursorPosition, maskOptions, mask) {
+        return nonLiteralIndices.indexOf(cursorPosition) !== -1 ?
+            this.insertCharAt(value, cursorPosition, maskOptions.promptChar) :
+            this.insertCharAt(value, cursorPosition, mask[cursorPosition]);
+    }
     private validateCharOnPosition(inputChar: string, position: number, mask: string): boolean {
         let regex: RegExp;
         let isValid: boolean;
@@ -377,7 +241,7 @@ export class MaskParsingService {
 
         return literals;
     }
-    private getNonLiteralIndeces(mask: string, literalKeys: number[]): number[] {
+    private getNonLiteralIndices(mask: string, literalKeys: number[]): number[] {
         const nonLiteralsIndeces: number[] = new Array();
 
         for (let i = 0; i < mask.length; i++) {

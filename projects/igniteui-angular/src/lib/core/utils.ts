@@ -139,7 +139,13 @@ export const enum KEYCODES {
     RIGHT_ARROW = 39,
     DOWN_ARROW = 40,
     F2 = 113,
-    TAB = 9
+    TAB = 9,
+    Ctrl = 17,
+    Z = 90,
+    Y = 89,
+    X = 88,
+    BACKSPACE = 8,
+    DELETE = 46
 }
 
 /**
