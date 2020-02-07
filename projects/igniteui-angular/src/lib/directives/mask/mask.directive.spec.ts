@@ -10,6 +10,7 @@ import { IgxInputGroupModule } from '../../input-group/input-group.component';
 import { IgxMaskModule } from './mask.directive';
 
 import { configureTestSuite } from '../../test-utils/configure-suite';
+import { UIInteractions } from '../../test-utils/ui-interactions.spec';
 
 describe('igxMask', () => {
     configureTestSuite();
@@ -41,7 +42,6 @@ describe('igxMask', () => {
     it('Initializes an input with default mask', fakeAsync(() => {
         const fixture = TestBed.createComponent(DefMaskComponent);
         fixture.detectChanges();
-
         const input = fixture.componentInstance.input;
 
         expect(input.nativeElement.value).toEqual('');
@@ -51,6 +51,7 @@ describe('igxMask', () => {
         tick();
 
         input.nativeElement.value = '@#$YUA123';
+        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
@@ -149,13 +150,13 @@ describe('igxMask', () => {
     it('Enter incorrect value with a preset mask', fakeAsync(() => {
         const fixture = TestBed.createComponent(MaskComponent);
         fixture.detectChanges();
-
         const input = fixture.componentInstance.input;
 
         input.nativeElement.dispatchEvent(new Event('focus'));
         tick();
 
         input.nativeElement.value = 'abc4569d12';
+        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
@@ -168,6 +169,7 @@ describe('igxMask', () => {
         tick();
 
         input.nativeElement.value = '1111111111111111111';
+        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
@@ -199,6 +201,7 @@ describe('igxMask', () => {
         tick();
 
         input.nativeElement.value = '123';
+        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
@@ -225,6 +228,7 @@ describe('igxMask', () => {
         expect(comp.value).toEqual(3456);
 
         input.nativeElement.value = 'A';
+        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
@@ -277,6 +281,7 @@ describe('igxMask', () => {
         tick();
 
         input.nativeElement.value = '';
+        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
@@ -286,6 +291,7 @@ describe('igxMask', () => {
         expect(input.nativeElement.value).toEqual('(___) ____-___');
 
         input.nativeElement.value = '6666';
+        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
