@@ -171,8 +171,9 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
         }
 
         const hasDeleteAction = (this._key === KEYCODES.BACKSPACE) || (this._key === KEYCODES.DELETE);
-        this._cursor = event.data ? this._cursor : this.selectionStart - 1;
         const clipboardData = this.inputValue.substring(this._cursor, this.selectionStart);
+        hasDeleteAction ? this._cursor = this.selectionStart - 1 :
+            this._cursor = event.data ? this._cursor : this.selectionStart - clipboardData.length;
         this.inputValue = this.maskParser.parseMaskValue(
             this._oldVal, this.inputValue, this.maskOptions, this._cursor,
             event.data || clipboardData, this._selection, hasDeleteAction);
@@ -190,6 +191,7 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
     @HostListener('paste', ['$event'])
     public onPaste(event): void {
         this._oldVal = this.inputValue;
+        this._cursor = this.selectionStart;
     }
 
     /** @hidden */

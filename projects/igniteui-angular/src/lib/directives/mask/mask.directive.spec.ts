@@ -1,9 +1,9 @@
 import { Component, Input, ViewChild, ElementRef, Pipe, PipeTransform } from '@angular/core';
 import {
-  async,
-  fakeAsync,
-  TestBed,
-  tick
+    async,
+    fakeAsync,
+    TestBed,
+    tick
 } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { IgxInputGroupModule } from '../../input-group/input-group.component';
@@ -36,7 +36,7 @@ describe('igxMask', () => {
                 IgxMaskModule
             ]
         })
-        .compileComponents();
+            .compileComponents();
     }));
 
     it('Initializes an input with default mask', fakeAsync(() => {
@@ -156,14 +156,14 @@ describe('igxMask', () => {
         tick();
 
         input.nativeElement.value = 'abc4569d12';
-        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
 
         input.nativeElement.dispatchEvent(new Event('focus'));
         tick();
+        fixture.detectChanges();
 
-        expect(input.nativeElement.value).toEqual('(___) 4569-_12');
+        expect(input.nativeElement.value).toEqual('(456) 912_-___');
 
         input.nativeElement.dispatchEvent(new Event('focus'));
         tick();
@@ -201,9 +201,9 @@ describe('igxMask', () => {
         tick();
 
         input.nativeElement.value = '123';
-        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
         tick();
+        fixture.detectChanges();
 
         input.nativeElement.dispatchEvent(new Event('focus'));
         tick();
@@ -250,7 +250,7 @@ describe('igxMask', () => {
         input.nativeElement.select();
         tick();
 
-        const keyEvent = new KeyboardEvent('keydown', {key : '57'});
+        const keyEvent = new KeyboardEvent('keydown', { key: '57' });
         input.nativeElement.dispatchEvent(keyEvent);
         tick();
 
@@ -276,7 +276,7 @@ describe('igxMask', () => {
         input.nativeElement.select();
         tick();
 
-        const keyEvent = new KeyboardEvent('keydown', {key : '8'});
+        const keyEvent = new KeyboardEvent('keydown', { key: '8' });
         input.nativeElement.dispatchEvent(keyEvent);
         tick();
 
@@ -291,8 +291,8 @@ describe('igxMask', () => {
         expect(input.nativeElement.value).toEqual('(___) ____-___');
 
         input.nativeElement.value = '6666';
-        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
         tick();
 
         input.nativeElement.dispatchEvent(new Event('focus'));
@@ -345,7 +345,8 @@ describe('igxMask', () => {
     }));
 });
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask"/>
                         </igx-input-group>` })
 class DefMaskComponent {
@@ -356,7 +357,8 @@ class DefMaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask"/>
                         </igx-input-group>` })
 class MaskComponent {
@@ -367,7 +369,8 @@ class MaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask" [includeLiterals]="true"/>
                         </igx-input-group>
                         <igx-input-group>
@@ -384,7 +387,8 @@ class IncludeLiteralsComponent {
     public input1: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask"/>
                         </igx-input-group>` })
 class DigitSpaceMaskComponent {
@@ -395,7 +399,8 @@ class DigitSpaceMaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask"/>
                         </igx-input-group>` })
 class DigitPlusMinusMaskComponent {
@@ -406,7 +411,8 @@ class DigitPlusMinusMaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask"/>
                         </igx-input-group>` })
 class LetterSpaceMaskComponent {
@@ -417,7 +423,8 @@ class LetterSpaceMaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask"/>
                         </igx-input-group>` })
 class AlphanumSpaceMaskComponent {
@@ -428,7 +435,8 @@ class AlphanumSpaceMaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="value" [igxMask]="mask"/>
                         </igx-input-group>` })
 class AnyCharMaskComponent {
@@ -439,7 +447,8 @@ class AnyCharMaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput [(ngModel)]="myValue" [igxMask]="myMask"
                             (onValueChange)="handleValueChange($event)"/>
                         </igx-input-group>` })
@@ -458,7 +467,8 @@ class EventFiringComponent {
     }
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input type="text" #input igxInput
                                    [value]="value"
                                    [igxMask]="myMask"
@@ -473,7 +483,8 @@ class OneWayBindComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput
                                 [placeholder]="'hello'"
                                 [(ngModel)]="value"
@@ -487,7 +498,8 @@ class PlaceholderMaskComponent {
     public input: ElementRef;
 }
 
-@Component({ template: `<igx-input-group>
+@Component({
+    template: `<igx-input-group>
                             <input #input type="text" igxInput
                                 [displayValuePipe]="displayFormat"
                                 [focusedValuePipe]="inputFormat"
@@ -507,14 +519,14 @@ class PipesMaskComponent {
 
 @Pipe({ name: 'inputFormat' })
 export class InputFormatPipe implements PipeTransform {
-     transform(value: any): string {
+    transform(value: any): string {
         return value.toUpperCase();
     }
 }
 
 @Pipe({ name: 'displayFormat' })
 export class DisplayFormatPipe implements PipeTransform {
-     transform(value: any): string {
+    transform(value: any): string {
         return value.toLowerCase();
     }
 }
