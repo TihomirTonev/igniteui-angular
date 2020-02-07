@@ -201,7 +201,7 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
             }
             this.inputValue = this.focusedValuePipe.transform(value);
         } else {
-            this.inputValue = this.maskParser.parseMaskOnInit(this.inputValue, this.maskOptions);
+            this.inputValue = this.maskParser.parseMask(this.inputValue, this.maskOptions);
         }
     }
 
@@ -210,7 +210,7 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
     public onBlur(value): void {
         if (this.displayValuePipe) {
             this.inputValue = this.displayValuePipe.transform(value);
-        } else if (value === this.maskParser.parseMask(this.maskOptions)) {
+        } else if (value === this.maskParser.parseMask(null, this.maskOptions)) {
             this.inputValue = '';
         }
         this._onTouchedCallback();
@@ -226,7 +226,7 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
             this.maskOptions.promptChar = this.promptChar.substring(0, 1);
         }
 
-        this.inputValue = value ? this.maskParser.parseMaskOnInit(value, this.maskOptions) : '';
+        this.inputValue = value ? this.maskParser.parseMask(value, this.maskOptions) : '';
         if (this.displayValuePipe) {
             this.inputValue = this.displayValuePipe.transform(this.inputValue);
         }

@@ -17,23 +17,7 @@ export class MaskParsingService {
         return this._cursor;
     }
 
-    public parseMask(maskOptions): string {
-        let outputVal = '';
-        const mask: string = maskOptions.format;
-        const literals: Map<number, string> = this.getMaskLiterals(mask);
-
-        for (const maskSym of mask) {
-            outputVal += maskOptions.promptChar;
-        }
-
-        literals.forEach((val: string, key: number) => {
-            outputVal = this.replaceCharAt(outputVal, key, val);
-        });
-
-        return outputVal;
-    }
-
-    public parseMaskOnInit(inputVal, maskOptions): string {
+    public parseMask(inputVal, maskOptions): string {
         let outputVal = '';
         let value = '';
         const mask: string = maskOptions.format;
@@ -109,7 +93,7 @@ export class MaskParsingService {
         if (hasDeleteAction) {
             if (inputText === '') {
                 this._cursor = 0;
-                return this.parseMaskOnInit(inputText, maskOptions);
+                return this.parseMask(inputText, maskOptions);
             }
             let i = 0;
             this._cursor = ++cursor;
