@@ -7,7 +7,7 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DeprecateProperty } from '../../core/deprecateDecorators';
 import { MaskParsingService } from './mask-parsing.service';
-import { isIE, IBaseEventArgs, KEYCODES } from '../../core/utils';
+import { isIE, IBaseEventArgs, KEYCODES, isEdge } from '../../core/utils';
 
 const noop = () => { };
 
@@ -109,7 +109,9 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
     }
 
     private get selectionStart(): number {
-        return this.nativeElement.selectionStart;
+        return isEdge() && this._hasDropAction ?
+            this.nativeElement.selectionStart - this.valueToParse.length :
+            this.nativeElement.selectionStart;
     }
 
     private get selectionEnd(): number {
@@ -120,10 +122,24 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
         return this.elementRef.nativeElement;
     }
 
+    private get clipboardData() {
+        return this.inputValue.substring(this._cursor, this.selectionStart);
+    }
+
+    private get valueToParse() {
+        if (this._hasDropAction) {
+            return this._droppedData;
+        }
+
+        return this.clipboardData;
+    }
+
     private _key: number;
     private _oldVal: any;
+    private _selection = 0;
     private _cursor: number;
-    private _selection: number;
+    private _droppedData: string;
+    private _hasDropAction: boolean;
     private _stopPropagation: boolean;
 
     private _onTouchedCallback: () => void = noop;
@@ -140,6 +156,7 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
             this.placeholder ? this.placeholder : this.maskOptions.format);
     }
 
+    /** @hidden */
     public ngAfterViewChecked(): void {
         this._oldVal = this.inputValue;
     }
@@ -164,39 +181,65 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
 
     /** @hidden */
     @HostListener('input', ['$event'])
-    public onInputChanged(event): void {
+    public onInputChanged(event: InputEvent): void {
         if (isIE() && this._stopPropagation) {
             this._stopPropagation = false;
             return;
         }
 
+        const valueToParse = event.data || this.valueToParse;
         const hasDeleteAction = (this._key === KEYCODES.BACKSPACE) || (this._key === KEYCODES.DELETE);
-        const clipboardData = this.inputValue.substring(this._cursor, this.selectionStart);
-        hasDeleteAction ? this._cursor = this.selectionStart - 1 :
-            this._cursor = event.data ? this._cursor : this.selectionStart - clipboardData.length;
+        this._cursor = this._hasDropAction ? this.selectionStart : this.updateCursorOnPasteOrDelete(hasDeleteAction, event);
         this.inputValue = this.maskParser.parseMaskValue(
             this._oldVal, this.inputValue, this.maskOptions, this._cursor,
-            event.data || clipboardData, this._selection, hasDeleteAction);
-        this.setCursorPosition(this.maskParser.cursor);
+            valueToParse, this._selection, hasDeleteAction);
+        this.setSelectionRange(this.maskParser.cursor);
 
         const rawVal = this.maskParser.restoreValueFromMask(this.inputValue, this.maskOptions);
         this.dataValue = this.includeLiterals ? this.inputValue : rawVal;
         this._onChangeCallback(this.dataValue);
 
-        this._oldVal = this.inputValue;
         this.onValueChange.emit({ rawValue: rawVal, formattedValue: this.inputValue });
+        this.afterInput();
     }
 
     /** @hidden */
-    @HostListener('paste', ['$event'])
-    public onPaste(event): void {
+    @HostListener('paste')
+    public onPaste(): void {
         this._oldVal = this.inputValue;
         this._cursor = this.selectionStart;
     }
 
     /** @hidden */
-    @HostListener('focus', ['$event.target.value'])
-    public onFocus(value): void {
+    @HostListener('focus', ['$event'])
+    public onFocus(event: FocusEvent): void {
+        this.showMask((event.target as HTMLInputElement).value);
+    }
+
+    /** @hidden */
+    @HostListener('blur', ['$event.target.value'])
+    public onBlur(value: string): void {
+        if (this.displayValuePipe) {
+            this.inputValue = this.displayValuePipe.transform(value);
+        } else if (value === this.maskParser.parseMask(null, this.maskOptions)) {
+            this.inputValue = '';
+        }
+        this._onTouchedCallback();
+    }
+
+    @HostListener('dragover', ['$event'])
+    public onDragOver(): void {
+        this.showMask('');
+    }
+
+    @HostListener('drop', ['$event'])
+    public onDrop(event: DragEvent): void {
+        this._hasDropAction = true;
+        this._droppedData = event.dataTransfer.getData('text');
+    }
+
+    /** @hidden */
+    protected showMask(value: string) {
         if (this.focusedValuePipe) {
             if (isIE()) {
                 this._stopPropagation = true;
@@ -207,23 +250,32 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
         }
     }
 
-    /** @hidden */
-    @HostListener('blur', ['$event.target.value'])
-    public onBlur(value): void {
-        if (this.displayValuePipe) {
-            this.inputValue = this.displayValuePipe.transform(value);
-        } else if (value === this.maskParser.parseMask(null, this.maskOptions)) {
-            this.inputValue = '';
-        }
-        this._onTouchedCallback();
-    }
-
-    private setCursorPosition(start: number, end: number = start): void {
+    private setSelectionRange(start: number, end: number = start): void {
         this.nativeElement.setSelectionRange(start, end);
     }
 
+    private updateCursorOnPasteOrDelete(hasDeleteAction: boolean, event: InputEvent): number {
+        if (hasDeleteAction) {
+            // delete
+            return this.selectionStart - 1;
+        } else if (event.data) {
+            // input
+            return this._cursor;
+        }
+
+        // paste
+        return this.selectionStart - this.clipboardData.length;
+    }
+
+    private afterInput() {
+        this._oldVal = this.inputValue;
+        this._hasDropAction = false;
+        this._selection = 0;
+        this._key = null;
+    }
+
     /** @hidden */
-    public writeValue(value): void {
+    public writeValue(value: string): void {
         if (this.promptChar && this.promptChar.length > 1) {
             this.maskOptions.promptChar = this.promptChar.substring(0, 1);
         }

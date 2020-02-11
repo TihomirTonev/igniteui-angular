@@ -28,7 +28,8 @@ describe('igxMask', () => {
                 MaskComponent,
                 OneWayBindComponent,
                 PipesMaskComponent,
-                PlaceholderMaskComponent
+                PlaceholderMaskComponent,
+                EmptyMaskTestComponent
             ],
             imports: [
                 FormsModule,
@@ -267,7 +268,6 @@ describe('igxMask', () => {
     it('Enter value over literal', fakeAsync(() => {
         const fixture = TestBed.createComponent(MaskComponent);
         fixture.detectChanges();
-
         const input = fixture.componentInstance.input;
 
         input.nativeElement.focus();
@@ -276,13 +276,9 @@ describe('igxMask', () => {
         input.nativeElement.select();
         tick();
 
-        const keyEvent = new KeyboardEvent('keydown', { key: '8' });
-        input.nativeElement.dispatchEvent(keyEvent);
-        tick();
-
         input.nativeElement.value = '';
-        fixture.detectChanges();
         input.nativeElement.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
         tick();
 
         input.nativeElement.dispatchEvent(new Event('focus'));
@@ -299,6 +295,42 @@ describe('igxMask', () => {
         tick();
 
         expect(input.nativeElement.value).toEqual('(666) 6___-___');
+    }));
+
+    it('Should successfully drop text in the input', fakeAsync(() => {
+        const fixture = TestBed.createComponent(MaskComponent);
+        fixture.detectChanges();
+        const input = fixture.componentInstance.input;
+
+        input.nativeElement.focus();
+        tick();
+        input.nativeElement.select();
+        tick();
+
+        input.nativeElement.value = '4576';
+        UIInteractions.simulateDropEvent(input.nativeElement, '4576', 'text');
+        fixture.detectChanges();
+        tick();
+
+        input.nativeElement.dispatchEvent(new Event('focus'));
+        tick();
+
+        expect(input.nativeElement.value).toEqual('(457) 6___-___');
+    }));
+
+    it('Should display mask on dragover', fakeAsync(() => {
+        const fixture = TestBed.createComponent(EmptyMaskTestComponent);
+        fixture.detectChanges();
+        const input = fixture.componentInstance.input;
+
+        expect(input.nativeElement.value).toEqual('');
+        expect(input.nativeElement.placeholder).toEqual('CCCCCCCCCC');
+
+        input.nativeElement.dispatchEvent(new DragEvent('dragover'));
+        fixture.detectChanges();
+        tick();
+
+        expect(input.nativeElement.value).toEqual('__________');
     }));
 
     it('Apply display and input pipes on blur and focus.', fakeAsync(() => {
@@ -513,6 +545,18 @@ class PipesMaskComponent {
     public displayFormat = new DisplayFormatPipe();
     public inputFormat = new InputFormatPipe();
 
+    @ViewChild('input', { static: true })
+    public input: ElementRef;
+}
+
+@Component({
+    template: `
+        <igx-input-group>
+            <input #input type="text" igxInput igxMask/>
+        </igx-input-group>
+    `
+})
+class EmptyMaskTestComponent {
     @ViewChild('input', { static: true })
     public input: ElementRef;
 }

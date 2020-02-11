@@ -17,7 +17,7 @@ export class MaskParsingService {
         return this._cursor;
     }
 
-    public parseMask(inputVal, maskOptions): string {
+    public parseMask(inputVal: string, maskOptions: any): string {
         let outputVal = '';
         let value = '';
         const mask: string = maskOptions.format;
@@ -66,7 +66,7 @@ export class MaskParsingService {
         return outputVal;
     }
 
-    public restoreValueFromMask(value, maskOptions): string {
+    public restoreValueFromMask(value: string, maskOptions: any): string {
         let outputVal = '';
         const mask: string = maskOptions.format;
         const literals: Map<number, string> = this.getMaskLiterals(mask);
@@ -83,7 +83,8 @@ export class MaskParsingService {
         return outputVal;
     }
 
-    public parseMaskValue(value, inputText, maskOptions, cursor, clipboardData, selection, hasDeleteAction?): string {
+    public parseMaskValue(value: string, inputText: string, maskOptions: any,
+        cursor: number, rawData: string, selection: number, hasDeleteAction: boolean): string {
         const mask: string = maskOptions.format;
         const literals: Map<number, string> = this.getMaskLiterals(mask);
         const literalKeys: number[] = Array.from(literals.keys());
@@ -103,7 +104,7 @@ export class MaskParsingService {
             value = inputText;
         } else {
             this._cursor = cursor;
-            for (const char of clipboardData) {
+            for (const char of rawData) {
                 if (this._cursor > mask.length) {
                     return value;
                 }
@@ -144,10 +145,10 @@ export class MaskParsingService {
         return value;
     }
 
-    private updateValue(nonLiteralIndices, value, cursorPosition, maskOptions, mask) {
-        return nonLiteralIndices.indexOf(cursorPosition) !== -1 ?
-            this.insertCharAt(value, cursorPosition, maskOptions.promptChar) :
-            this.insertCharAt(value, cursorPosition, mask[cursorPosition]);
+    private updateValue(nonLiteralIndices: number[], value: string, cursor: number, maskOptions: any, mask: string) {
+        return nonLiteralIndices.indexOf(cursor) !== -1 ?
+            this.insertCharAt(value, cursor, maskOptions.promptChar) :
+            this.insertCharAt(value, cursor, mask[cursor]);
     }
     private validateCharOnPosition(inputChar: string, position: number, mask: string): boolean {
         let regex: RegExp;
