@@ -77,10 +77,6 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
     @Input()
     public focusedValuePipe: PipeTransform;
 
-    /** @hidden */
-    @Input()
-    private dataValue: string;
-
     /**
      * Emits an event each time the value changes.
      * Provides `rawValue: string` and `formattedValue: string` as event arguments.
@@ -138,6 +134,7 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
     private _oldVal: any;
     private _selection = 0;
     private _cursor: number;
+    private _dataValue: string;
     private _droppedData: string;
     private _hasDropAction: boolean;
     private _stopPropagation: boolean;
@@ -196,8 +193,8 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
         this.setSelectionRange(this.maskParser.cursor);
 
         const rawVal = this.maskParser.restoreValueFromMask(this.inputValue, this.maskOptions);
-        this.dataValue = this.includeLiterals ? this.inputValue : rawVal;
-        this._onChangeCallback(this.dataValue);
+        this._dataValue = this.includeLiterals ? this.inputValue : rawVal;
+        this._onChangeCallback(this._dataValue);
 
         this.onValueChange.emit({ rawValue: rawVal, formattedValue: this.inputValue });
         this.afterInput();
@@ -227,11 +224,13 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
         this._onTouchedCallback();
     }
 
-    @HostListener('dragover', ['$event'])
+    /** @hidden */
+    @HostListener('dragover')
     public onDragOver(): void {
         this.showMask('');
     }
 
+    /** @hidden */
     @HostListener('drop', ['$event'])
     public onDrop(event: DragEvent): void {
         this._hasDropAction = true;
@@ -285,8 +284,8 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
             this.inputValue = this.displayValuePipe.transform(this.inputValue);
         }
 
-        this.dataValue = this.includeLiterals ? this.inputValue : value;
-        this._onChangeCallback(this.dataValue);
+        this._dataValue = this.includeLiterals ? this.inputValue : value;
+        this._onChangeCallback(this._dataValue);
 
         this.onValueChange.emit({ rawValue: value, formattedValue: this.inputValue });
     }
