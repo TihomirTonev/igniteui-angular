@@ -14,7 +14,7 @@ import { UIInteractions } from '../../test-utils/ui-interactions.spec';
 
 describe('igxMask', () => {
     configureTestSuite();
-    beforeEach(async(() => {
+    beforeAll(async(() => {
         TestBed.configureTestingModule({
             declarations: [
                 AlphanumSpaceMaskComponent,
