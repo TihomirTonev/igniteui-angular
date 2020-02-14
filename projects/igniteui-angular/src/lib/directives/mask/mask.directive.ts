@@ -187,10 +187,11 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
         const valueToParse = event.data || this.valueToParse;
         const hasDeleteAction = (this._key === KEYCODES.BACKSPACE) || (this._key === KEYCODES.DELETE);
         this._cursor = this._hasDropAction ? this.selectionStart : this.updateCursorOnPasteOrDelete(hasDeleteAction, event);
-        this.inputValue = this.maskParser.parseMaskValue(
+        const parsedData = this.maskParser.parseMaskValue(
             this._oldVal, this.inputValue, this.maskOptions, this._cursor,
             valueToParse, this._selection, hasDeleteAction);
-        this.setSelectionRange(this.maskParser.cursor);
+        this.inputValue = parsedData.value;
+        this.setSelectionRange(parsedData.cursor);
 
         const rawVal = this.maskParser.restoreValueFromMask(this.inputValue, this.maskOptions);
         this._dataValue = this.includeLiterals ? this.inputValue : rawVal;

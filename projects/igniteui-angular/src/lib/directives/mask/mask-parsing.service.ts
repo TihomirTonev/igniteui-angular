@@ -13,9 +13,6 @@ export const MASK_FLAGS = ['C', '&', 'a', 'A', '?', 'L', '9', '0', '#'];
 })
 export class MaskParsingService {
     private _cursor;
-    public get cursor() {
-        return this._cursor;
-    }
 
     public parseMask(inputVal: string, maskOptions: any): string {
         let outputVal = '';
@@ -23,7 +20,7 @@ export class MaskParsingService {
         const mask: string = maskOptions.format;
         const literals: Map<number, string> = this.getMaskLiterals(mask);
         const literalKeys: number[] = Array.from(literals.keys());
-        const nonLiteralIndeces: number[] = this.getNonLiteralIndices(mask, literalKeys);
+        const nonLiteralIndices: number[] = this.getNonLiteralIndices(mask, literalKeys);
         const literalValues: string[] = Array.from(literals.values());
 
         if (inputVal != null) {
@@ -46,21 +43,21 @@ export class MaskParsingService {
 
         for (let i = 0; i < nonLiteralValues.length; i++) {
             const char = nonLiteralValues[i];
-            const isCharValid = this.validateCharOnPosition(char, nonLiteralIndeces[i], mask);
+            const isCharValid = this.validateCharOnPosition(char, nonLiteralIndices[i], mask);
 
             if (!isCharValid && char !== maskOptions.promptChar) {
                 nonLiteralValues[i] = maskOptions.promptChar;
             }
         }
 
-        if (nonLiteralValues.length > nonLiteralIndeces.length) {
-            nonLiteralValues.splice(nonLiteralIndeces.length);
+        if (nonLiteralValues.length > nonLiteralIndices.length) {
+            nonLiteralValues.splice(nonLiteralIndices.length);
         }
 
         let pos = 0;
         for (const nonLiteralValue of nonLiteralValues) {
             const char = nonLiteralValue;
-            outputVal = this.replaceCharAt(outputVal, nonLiteralIndeces[pos++], char);
+            outputVal = this.replaceCharAt(outputVal, nonLiteralIndices[pos++], char);
         }
 
         return outputVal;
@@ -84,7 +81,7 @@ export class MaskParsingService {
     }
 
     public parseMaskValue(value: string, inputText: string, maskOptions: any,
-        cursor: number, rawData: string, selection: number, hasDeleteAction: boolean): string {
+        cursor: number, rawData: string, selection: number, hasDeleteAction: boolean): { value: string, cursor: number } {
         const mask: string = maskOptions.format;
         const literals: Map<number, string> = this.getMaskLiterals(mask);
         const literalKeys: number[] = Array.from(literals.keys());
@@ -94,7 +91,7 @@ export class MaskParsingService {
         if (hasDeleteAction) {
             if (inputText === '') {
                 this._cursor = 0;
-                return this.parseMask(inputText, maskOptions);
+                return { value: this.parseMask(inputText, maskOptions), cursor: this._cursor };
             }
             let i = 0;
             this._cursor = ++cursor;
@@ -106,7 +103,7 @@ export class MaskParsingService {
             this._cursor = cursor;
             for (const char of rawData) {
                 if (this._cursor > mask.length) {
-                    return value;
+                    return { value: value, cursor: this._cursor };
                 }
 
                 if (nonLiteralIndices.indexOf(this._cursor) !== -1) {
@@ -142,7 +139,7 @@ export class MaskParsingService {
             }
         }
 
-        return value;
+        return { value: value, cursor: this._cursor };
     }
 
     private updateValue(nonLiteralIndices: number[], value: string, cursor: number, maskOptions: any, mask: string) {
@@ -156,7 +153,7 @@ export class MaskParsingService {
         const letterOrDigitRegEx = '[\\d\\u00C0-\\u1FFF\\u2C00-\\uD7FFa-zA-Z]';
         const letterDigitOrSpaceRegEx = '[\\d\\u00C0-\\u1FFF\\u2C00-\\uD7FFa-zA-Z\\u0020]';
         const letterRegEx = '[\\u00C0-\\u1FFF\\u2C00-\\uD7FFa-zA-Z]';
-        const letteSpaceRegEx = '[\\u00C0-\\u1FFF\\u2C00-\\uD7FFa-zA-Z\\u0020]';
+        const letterSpaceRegEx = '[\\u00C0-\\u1FFF\\u2C00-\\uD7FFa-zA-Z\\u0020]';
         const digitRegEx = '[\\d]';
         const digitSpaceRegEx = '[\\d\\u0020]';
         const digitSpecialRegEx = '[\\d-\\+]';
@@ -178,7 +175,7 @@ export class MaskParsingService {
                 isValid = regex.test(inputChar);
                 break;
             case '?':
-                regex = new RegExp(letteSpaceRegEx);
+                regex = new RegExp(letterSpaceRegEx);
                 isValid = regex.test(inputChar);
                 break;
             case 'L':
@@ -227,15 +224,15 @@ export class MaskParsingService {
         return literals;
     }
     private getNonLiteralIndices(mask: string, literalKeys: number[]): number[] {
-        const nonLiteralsIndeces: number[] = new Array();
+        const nonLiteralsIndices: number[] = new Array();
 
         for (let i = 0; i < mask.length; i++) {
             if (literalKeys.indexOf(i) === -1) {
-                nonLiteralsIndeces.push(i);
+                nonLiteralsIndices.push(i);
             }
         }
 
-        return nonLiteralsIndeces;
+        return nonLiteralsIndices;
     }
     private getNonLiteralValues(value: string, literalValues: string[]): string[] {
         const nonLiteralValues: string[] = new Array();
