@@ -114,15 +114,15 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
         return this.nativeElement.selectionEnd;
     }
 
-    private get nativeElement() {
+    private get nativeElement(): HTMLInputElement {
         return this.elementRef.nativeElement;
     }
 
-    private get clipboardData() {
+    private get clipboardData(): string {
         return this.inputValue.substring(this._cursor, this.selectionStart);
     }
 
-    private get valueToParse() {
+    private get valueToParse(): string {
         if (this._hasDropAction) {
             return this._droppedData;
         }
@@ -161,12 +161,11 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
     /** @hidden */
     @HostListener('keydown', ['$event'])
     public onKeyDown(event): void {
-        const key = event.keyCode || event.charCode;
-
         if (isIE() && this._stopPropagation) {
             this._stopPropagation = false;
         }
 
+        const key = event.keyCode || event.charCode;
         if ((key === KEYCODES.Ctrl && key === KEYCODES.Z) || (key === KEYCODES.Ctrl && key === KEYCODES.Y)) {
             event.preventDefault();
         }
