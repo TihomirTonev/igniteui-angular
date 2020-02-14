@@ -1148,9 +1148,9 @@ describe('IgxDatePicker', () => {
             const input = fixture.debugElement.query(By.directive(IgxInputDirective));
             expect(input).toBeDefined();
             datePicker.isSpinLoop = false;
-
             input.nativeElement.focus();
             UIInteractions.sendInput(input, '31-03-19');
+            fixture.detectChanges();
             expect(input.nativeElement.value).toBe('31-03-19');
 
             input.nativeElement.focus();
