@@ -318,7 +318,7 @@ describe('igxMask', () => {
         expect(input.nativeElement.value).toEqual('(457) 6___-___');
     }));
 
-    it('Should display mask on dragover', fakeAsync(() => {
+    it('Should display mask on dragenter and remove it on dragleave', fakeAsync(() => {
         const fixture = TestBed.createComponent(EmptyMaskTestComponent);
         fixture.detectChanges();
         const input = fixture.componentInstance.input;
@@ -326,11 +326,17 @@ describe('igxMask', () => {
         expect(input.nativeElement.value).toEqual('');
         expect(input.nativeElement.placeholder).toEqual('CCCCCCCCCC');
 
-        input.nativeElement.dispatchEvent(new DragEvent('dragover'));
+        input.nativeElement.dispatchEvent(new DragEvent('dragenter'));
         fixture.detectChanges();
         tick();
 
         expect(input.nativeElement.value).toEqual('__________');
+
+        input.nativeElement.dispatchEvent(new DragEvent('dragleave'));
+        fixture.detectChanges();
+        tick();
+
+        expect(input.nativeElement.value).toEqual('');
     }));
 
     it('Apply display and input pipes on blur and focus.', fakeAsync(() => {

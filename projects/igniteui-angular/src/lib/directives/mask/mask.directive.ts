@@ -225,9 +225,15 @@ export class IgxMaskDirective implements OnInit, AfterViewChecked, ControlValueA
     }
 
     /** @hidden */
-    @HostListener('dragover')
-    public onDragOver(): void {
+    @HostListener('dragenter')
+    public onDragEnter(): void {
         this.showMask('');
+    }
+
+    /** @hidden */
+    @HostListener('dragleave')
+    public onDragLeave(): void {
+        this.inputValue = '';
     }
 
     /** @hidden */
